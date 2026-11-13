@@ -46,6 +46,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        Estado.appNaFrente.value = true
+    }
+
+    override fun onPause() {
+        Estado.appNaFrente.value = false
+        super.onPause()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)

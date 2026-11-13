@@ -50,7 +50,8 @@ fun CampoNumero(
             texto = limpo
             lerNumero(limpo)?.let { if (it != valor) onValor(it) }
         },
-        rotulo = if (sufixo != null) "$rotulo ($sufixo)" else rotulo,
+        rotulo = rotulo,
+        sufixo = sufixo,
         modifier = modifier,
         erro = if (invalido) "Número inválido" else null,
         ajuda = ajuda,

@@ -52,9 +52,12 @@ class LeitorService : AccessibilityService() {
         rec = BotaoRec(this, wm, app.preferencias, fontes)
         rec.aoTocar = { alternarGravacao() }
         Estado.leitorAtivo.value = true
+        instancia = this
 
         escopo.launch {
-            combine(app.preferencias.ajustes, Estado.gravando) { a, g -> a.botaoRec to g }.collect { (mostrarRec, gravando) ->
+            combine(app.preferencias.ajustes, Estado.gravando, Estado.appNaFrente) { a, g, frente ->
+                Triple(a.botaoRec && !frente, g, frente)
+            }.collect { (mostrarRec, gravando, _) ->
                 if (mostrarRec) rec.mostrar(gravando) else rec.esconder()
             }
         }
@@ -162,6 +165,7 @@ class LeitorService : AccessibilityService() {
         if (encerrado) return
         encerrado = true
         Estado.leitorAtivo.value = false
+        if (instancia === this) instancia = null
         principal.removeCallbacksAndMessages(null)
         escopo.cancel()
         if (::balao.isInitialized) balao.esconder()
@@ -169,6 +173,16 @@ class LeitorService : AccessibilityService() {
     }
 
     companion object {
+        @Volatile
+        private var instancia: LeitorService? = null
+
+        /** Desliga o leitor (o mesmo que desativar em Acessibilidade). Para religar, só pelas configurações. */
+        fun desligar() {
+            val s = instancia ?: return
+            s.encerrar()
+            s.disableSelf()
+        }
+
         const val PACOTE_UBER = "com.ubercab.driver"
         const val PACOTE_99 = "com.app99.driver"
         private const val ATRASO_LEITURA_MS = 250L

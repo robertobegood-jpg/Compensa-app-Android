@@ -37,6 +37,7 @@ import com.roberto.compensa.Estado
 import com.roberto.compensa.gravacao.GravacaoService
 import com.roberto.compensa.gravacao.Gravacoes
 import com.roberto.compensa.gravacao.Video
+import com.roberto.compensa.dados.QualidadeVideo
 import com.roberto.compensa.ui.componentes.BotaoPrimario
 import com.roberto.compensa.ui.componentes.BotaoSecundario
 import com.roberto.compensa.ui.componentes.BotaoTexto
@@ -146,6 +147,32 @@ fun GravarScreen(app: App) {
             { app.preferencias.salvarAjustes(ajustes.copy(cameraFrontal = it)) }
         )
         Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(16.dp))
+        Hud("Qualidade")
+        Spacer(Modifier.height(8.dp))
+        Segmentado(
+            QualidadeVideo.entries.toList(), ajustes.qualidade, { it.rotulo },
+            { app.preferencias.salvarAjustes(ajustes.copy(qualidade = it)) }
+        )
+        Spacer(Modifier.height(6.dp))
+        TextoApoio(
+            "${ajustes.qualidade.resolucao}p · cerca de ${ajustes.qualidade.mbPorHora} MB por hora. " +
+                "A Econômica já serve de prova e gasta bem menos espaço."
+        )
+        Spacer(Modifier.height(16.dp))
+        Hud("Apagar vídeos antigos")
+        Spacer(Modifier.height(8.dp))
+        Segmentado(
+            listOf(0, 7, 15, 30), ajustes.apagarAposDias, { if (it == 0) "Nunca" else "$it dias" },
+            { app.preferencias.salvarAjustes(ajustes.copy(apagarAposDias = it)) }
+        )
+        Spacer(Modifier.height(6.dp))
+        TextoApoio(
+            if (ajustes.apagarAposDias == 0) "Os vídeos ficam até você apagar."
+            else "Ao começar uma gravação, os vídeos com mais de ${ajustes.apagarAposDias} dias são apagados. " +
+                "Se algum for prova, envie antes para um lugar seguro."
+        )
+        Spacer(Modifier.height(8.dp))
         LinhaMarcavel(
             "Gravar áudio", ajustes.gravarAudio,
             { app.preferencias.salvarAjustes(ajustes.copy(gravarAudio = !ajustes.gravarAudio)) },
@@ -163,6 +190,10 @@ fun GravarScreen(app: App) {
         )
 
         Secao("02", "Vídeos")
+        if (videos.isNotEmpty()) {
+            Hud("${videos.size} vídeo(s) · ${tamanhoArquivo(videos.sumOf { it.bytes })} no celular")
+            Spacer(Modifier.height(8.dp))
+        }
         if (videos.isEmpty()) {
             TextoApoio("Nenhum vídeo ainda. Eles ficam na galeria, em Filmes › Compensa.")
         } else {

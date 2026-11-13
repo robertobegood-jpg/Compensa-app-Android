@@ -89,6 +89,16 @@ object Gravacoes {
         }
     }
 
+    /** Soma do tamanho de todos os vídeos. */
+    fun espacoUsado(context: Context): Long = listar(context).sumOf { it.bytes }
+
+    /** Apaga os vídeos com mais de [dias] dias. Devolve quantos apagou. */
+    fun apagarAntigos(context: Context, dias: Int): Int {
+        if (dias <= 0) return 0
+        val limite = System.currentTimeMillis() - dias * 24L * 60 * 60 * 1000
+        return listar(context).filter { it.quando < limite }.count { apagar(context, it) }
+    }
+
     /** true se apagou. */
     fun apagar(context: Context, v: Video): Boolean = runCatching {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {

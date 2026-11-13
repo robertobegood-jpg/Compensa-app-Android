@@ -517,7 +517,8 @@ fun CampoTexto(
     minLinhas: Int = 1,
     habilitado: Boolean = true,
     somenteLeitura: Boolean = false,
-    trailing: (@Composable () -> Unit)? = null
+    trailing: (@Composable () -> Unit)? = null,
+    sufixo: String? = null
 ) {
     val apoio = erro ?: ajuda
     OutlinedTextField(
@@ -527,7 +528,8 @@ fun CampoTexto(
         enabled = habilitado,
         readOnly = somenteLeitura,
         textStyle = Oficina.tipos.body,
-        label = { Text(rotulo) },
+        label = { Text(rotulo, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        suffix = sufixo?.let { s -> { Text(s, style = Oficina.tipos.bodySm, color = Oficina.cores.muted) } },
         placeholder = placeholder?.let { p -> { Text(p) } },
         trailingIcon = trailing,
         supportingText = apoio?.let { a -> { Text(a) } },

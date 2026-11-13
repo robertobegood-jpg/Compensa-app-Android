@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.roberto.compensa.App
 import com.roberto.compensa.Estado
 import com.roberto.compensa.dados.Registro
+import com.roberto.compensa.leitor.LeitorService
 import com.roberto.compensa.nucleo.Cor
 import com.roberto.compensa.ui.componentes.BotaoPrimario
 import com.roberto.compensa.ui.componentes.BotaoSecundario
@@ -71,6 +72,14 @@ fun PainelScreen(app: App, onIrCriterios: () -> Unit, onIrGravar: () -> Unit, on
                         "Toque nele para fechar; arraste para mudar de lugar.",
                     style = Oficina.tipos.body, color = c.ink
                 )
+                Spacer(Modifier.height(16.dp))
+                BotaoSecundario(
+                    "Desligar o leitor",
+                    onClick = { LeitorService.desligar() },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(4.dp))
+                TextoApoio("Para religar, é só tocar em \"Ligar o leitor\" de novo.")
             }
         } else {
             Bloco(Modifier.marcasDeCanto(c.lineStrong)) {

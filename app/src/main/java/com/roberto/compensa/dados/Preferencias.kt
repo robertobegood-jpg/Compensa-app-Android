@@ -6,6 +6,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+/**
+ * Qualidade da gravação de segurança. O tamanho por hora é aproximado (vídeo + áudio).
+ * [resolucao]: 480 = SD, 720 = HD.
+ */
+enum class QualidadeVideo(val rotulo: String, val resolucao: Int, val bitsPorSegundo: Int, val mbPorHora: Int) {
+    ECONOMICA("Econômica", 480, 700_000, 360),
+    MEDIA("Média", 720, 1_500_000, 720),
+    ALTA("Alta", 720, 3_000_000, 1400)
+}
+
 enum class Tema(val rotulo: String) { ESCURO("Escuro"), CLARO("Claro"), SISTEMA("Sistema") }
 
 /** Ajustes gerais do app (fora os critérios). */
@@ -20,6 +30,9 @@ data class Ajustes(
     val botaoRec: Boolean = true,
     val cameraFrontal: Boolean = true,
     val gravarAudio: Boolean = true,
+    val qualidade: QualidadeVideo = QualidadeVideo.ECONOMICA,
+    /** Apaga vídeos mais velhos que isso ao iniciar uma gravação. 0 = nunca apaga. */
+    val apagarAposDias: Int = 0,
     val tema: Tema = Tema.ESCURO
 )
 
@@ -53,6 +66,7 @@ class Preferencias(context: Context) {
             .putInt("tempoBalao", a.tempoBalao).putBoolean("modoCaptura", a.modoCaptura)
             .putBoolean("botaoRec", a.botaoRec).putBoolean("cameraFrontal", a.cameraFrontal)
             .putBoolean("gravarAudio", a.gravarAudio).putString("tema", a.tema.name)
+            .putString("qualidade", a.qualidade.name).putInt("apagarAposDias", a.apagarAposDias)
             .apply()
         _ajustes.value = a
     }
@@ -90,6 +104,8 @@ class Preferencias(context: Context) {
             botaoRec = prefs.getBoolean("botaoRec", p.botaoRec),
             cameraFrontal = prefs.getBoolean("cameraFrontal", p.cameraFrontal),
             gravarAudio = prefs.getBoolean("gravarAudio", p.gravarAudio),
+            qualidade = QualidadeVideo.entries.firstOrNull { it.name == prefs.getString("qualidade", null) } ?: p.qualidade,
+            apagarAposDias = prefs.getInt("apagarAposDias", p.apagarAposDias),
             tema = Tema.entries.firstOrNull { it.name == prefs.getString("tema", null) } ?: p.tema
         )
     }

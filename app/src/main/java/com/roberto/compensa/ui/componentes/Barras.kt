@@ -121,7 +121,10 @@ fun BarraInferior(
                         }
                     }
                     Spacer(Modifier.height(6.dp))
-                    Hud(aba.rotulo, cor = frente, estilo = Oficina.tipos.hud.copy(letterSpacing = 0.08.em))
+                    // Com 5 abas o espaço é curto: letra menor e menos espaçada para não encostar.
+                    val estilo = if (abas.size >= 5) Oficina.tipos.hud.copy(fontSize = 9.sp, letterSpacing = 0.02.em)
+                    else Oficina.tipos.hud.copy(letterSpacing = 0.08.em)
+                    Hud(aba.rotulo, cor = frente, estilo = estilo)
                 }
             }
         }

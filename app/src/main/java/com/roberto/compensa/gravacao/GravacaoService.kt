@@ -83,15 +83,20 @@ class GravacaoService : LifecycleService() {
             return
         }
 
+        // Libera espaço: apaga vídeos antigos, se o motorista escolheu isso.
+        if (ajustes.apagarAposDias > 0) Gravacoes.apagarAntigos(this, ajustes.apagarAposDias)
+
         iniciando = true
         val futuro = ProcessCameraProvider.getInstance(this)
         futuro.addListener({
             try {
                 val provedor = futuro.get()
+                val q = ajustes.qualidade
+                val alvo = if (q.resolucao <= 480) Quality.SD else Quality.HD
                 val recorder = Recorder.Builder()
-                    .setQualitySelector(
-                        QualitySelector.from(Quality.HD, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD))
-                    )
+                    .setQualitySelector(QualitySelector.from(alvo, FallbackStrategy.lowerQualityOrHigherThan(Quality.SD)))
+                    // Taxa de bits baixa = arquivo pequeno. Para prova, 480p já mostra rostos e vozes.
+                    .setTargetVideoEncodingBitRate(q.bitsPorSegundo)
                     .build()
                 val captura = VideoCapture.withOutput(recorder)
 

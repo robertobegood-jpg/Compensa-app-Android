@@ -46,6 +46,9 @@ object Estado {
     /** A gravação de segurança está rodando. */
     val gravando = kotlinx.coroutines.flow.MutableStateFlow(false)
 
+    /** O próprio Compensa está aberto na tela (o botão REC flutuante se esconde). */
+    val appNaFrente = kotlinx.coroutines.flow.MutableStateFlow(false)
+
     /** Último erro da gravação, para mostrar na tela. */
     val erroGravacao = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
 }
