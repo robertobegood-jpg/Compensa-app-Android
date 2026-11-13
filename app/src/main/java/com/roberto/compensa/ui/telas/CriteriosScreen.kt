@@ -104,6 +104,11 @@ fun CriteriosScreen(app: App, onIrTestar: () -> Unit) {
         Secao("06", "Leitura")
         LinhaMarcavel("Ler Uber Driver", ajustes.lerUber, { app.preferencias.salvarAjustes(ajustes.copy(lerUber = !ajustes.lerUber)) })
         LinhaMarcavel("Ler 99 Motorista", ajustes.ler99, { app.preferencias.salvarAjustes(ajustes.copy(ler99 = !ajustes.ler99)) })
+        LinhaMarcavel(
+            "Ler pela imagem da tela", ajustes.leituraImagem,
+            { app.preferencias.salvarAjustes(ajustes.copy(leituraImagem = !ajustes.leituraImagem)) },
+            subtitulo = "Necessário no card novo do Uber, que esconde o texto. Gasta um pouco mais de bateria (Android 11+)"
+        )
         Spacer(Modifier.height(8.dp))
         CampoNumero(
             ajustes.tempoBalao.toDouble(),

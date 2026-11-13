@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Só recebe eventos do Uber Driver e do 99 Motorista. Não executa gestos. -->
+<!-- Só recebe eventos do Uber Driver e do 99 Motorista. Não executa gestos.
+     isAccessibilityTool: o Uber marca o card como "sensível" (Android 14+) e só mostra o texto a ferramentas de acessibilidade.
+     canTakeScreenshot: plano B, lê o card pela imagem quando o texto vem escondido. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged|typeWindowsChanged"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagReportViewIds|flagRetrieveInteractiveWindows|flagIncludeNotImportantViews"
     android:canRetrieveWindowContent="true"
     android:canPerformGestures="false"
+    android:canTakeScreenshot="true"
+    android:isAccessibilityTool="true"
     android:description="@string/leitor_descricao"
     android:notificationTimeout="150"
     android:packageNames="com.ubercab.driver,com.app99.driver" />

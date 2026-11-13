@@ -57,6 +57,32 @@ public class LeitorCardTest {
         assertEquals(2.3, c.kmViagem, 0.001);
     }
 
+    /** Como a leitura por imagem (OCR) devolve o card do Uber: linha a linha, com pequenos erros. */
+    @Test
+    public void uberLidoPorImagem() {
+        Chamada c = ler("Envios Carro", "Exclusivo", "RS 10,02", "27 min • 5.8 km", "* 4,68 (274)", "Verificado",
+                "10 min (2.7 km)", "Rua Olívia Guedes Penteado,", "Veleiros, São Paulo",
+                "17 minutos (3.1 km)", "R. Nora Ney, 80, Socorro, São Paulo", "Aceitar");
+        assertNotNull(c);
+        assertEquals(10.02, c.valor, 0.001);
+        assertEquals(2.7, c.kmBusca, 0.001);
+        assertEquals(10, c.minBusca, 0.001);
+        assertEquals(3.1, c.kmViagem, 0.001);
+        assertEquals(17, c.minViagem, 0.001);
+    }
+
+    @Test
+    public void uberCardSemSelos() {
+        Chamada c = ler("Envios Carro", "R$ 10,04", "19 min • 6.0 km", "4,65 (2484)",
+                "5 min (1.5 km)", "Rua Pedro Santa Lúcia, Cidade Dutra, São Paulo",
+                "14 minutos (4.5 km)", "Rua Maria Clara Martins da Silveira, 192, Campo Grande, São Paulo", "Tenho interesse");
+        assertNotNull(c);
+        assertEquals(10.04, c.valor, 0.001);
+        assertEquals(1.5, c.kmBusca, 0.001);
+        assertEquals(4.5, c.kmViagem, 0.001);
+        assertEquals(14, c.minViagem, 0.001);
+    }
+
     @Test
     public void uberComPontoDecimalEEspacoEspecial() {
         Chamada c = ler("Uber Comfort", "R$ 25.90", "5 min (1.9 km) away", "Trip: 31 min (14.2 km)", "Accept");

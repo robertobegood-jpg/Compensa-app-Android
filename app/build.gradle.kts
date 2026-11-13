@@ -15,8 +15,8 @@ android {
         applicationId = "com.roberto.compensa"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
     }
 
     // Assinatura oficial. A chave NÃO fica no repositório:
@@ -100,6 +100,9 @@ dependencies {
     implementation("androidx.camera:camera-camera2:$camerax")
     implementation("androidx.camera:camera-lifecycle:$camerax")
     implementation("androidx.camera:camera-video:$camerax")
+
+    // Leitura do card pela imagem (roda no celular, modelo já incluso no app)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 
     // QR Code do Pix (cafezinho)
     implementation("com.google.zxing:core:3.5.3")

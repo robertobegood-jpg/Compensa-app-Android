@@ -18,9 +18,9 @@ public final class LeitorCard {
     private LeitorCard() {
     }
 
-    /** "R$ 12,34", "R$12.34", "R$ 1.234,56". Não pega "R$ 1,85/km" nem "R$ 30/h". */
+    /** "R$ 12,34", "R$12.34", "R$ 1.234,56" (e "RS 12,34", erro comum da leitura por imagem). Não pega "R$ 1,85/km" nem "R$ 30/h". */
     private static final Pattern VALOR = Pattern.compile(
-            "R\\$\\s*(\\d{1,3}(?:\\.\\d{3})+(?:,\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)(?![.,]?\\d)(?!\\s*/\\s*(?:km|h|min|hora))",
+            "(?:R\\$|\\bRS(?=\\s*\\d))\\s*(\\d{1,3}(?:\\.\\d{3})+(?:,\\d{1,2})?|\\d+(?:[.,]\\d{1,2})?)(?![.,]?\\d)(?!\\s*/\\s*(?:km|h|min|hora))",
             Pattern.CASE_INSENSITIVE);
 
     /** "2,8 km", "2.8km", "800 m". */

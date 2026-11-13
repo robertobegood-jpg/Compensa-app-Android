@@ -24,6 +24,8 @@ data class Ajustes(
     /** Leitor ligado em Acessibilidade, mas sem ler (pausa rápida, sem ir às configurações). */
     val leitorPausado: Boolean = false,
     val ler99: Boolean = true,
+    /** Se o texto do card vier escondido, lê pela imagem da tela (Android 11+). */
+    val leituraImagem: Boolean = true,
     /** Segundos que o balão fica na tela. */
     val tempoBalao: Int = 15,
     /** Salva o texto lido de cada chamada em arquivo, para calibrar a leitura. */
@@ -65,7 +67,7 @@ class Preferencias(context: Context) {
     fun salvarAjustes(a: Ajustes) {
         prefs.edit()
             .putBoolean("lerUber", a.lerUber).putBoolean("ler99", a.ler99)
-            .putBoolean("leitorPausado", a.leitorPausado)
+            .putBoolean("leitorPausado", a.leitorPausado).putBoolean("leituraImagem", a.leituraImagem)
             .putInt("tempoBalao", a.tempoBalao).putBoolean("modoCaptura", a.modoCaptura)
             .putBoolean("botaoRec", a.botaoRec).putBoolean("cameraFrontal", a.cameraFrontal)
             .putBoolean("gravarAudio", a.gravarAudio).putString("tema", a.tema.name)
@@ -103,6 +105,7 @@ class Preferencias(context: Context) {
             lerUber = prefs.getBoolean("lerUber", p.lerUber),
             ler99 = prefs.getBoolean("ler99", p.ler99),
             leitorPausado = prefs.getBoolean("leitorPausado", p.leitorPausado),
+            leituraImagem = prefs.getBoolean("leituraImagem", p.leituraImagem),
             tempoBalao = prefs.getInt("tempoBalao", p.tempoBalao),
             modoCaptura = prefs.getBoolean("modoCaptura", p.modoCaptura),
             botaoRec = prefs.getBoolean("botaoRec", p.botaoRec),

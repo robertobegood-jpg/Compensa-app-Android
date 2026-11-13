@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
@@ -36,6 +38,8 @@ class LeitorService : AccessibilityService() {
 
     private var pacotePendente: String? = null
     private var leituraAgendada = false
+    private var ultimaImagemEm = 0L
+    private lateinit var imagem: LeitorImagem
     private var ultimaAssinatura: String? = null
     private var ultimaAssinaturaEm = 0L
     private var ultimoCardEm = 0L
@@ -55,6 +59,7 @@ class LeitorService : AccessibilityService() {
         balao = BalaoSemaforo(this, wm, app.preferencias, fontes)
         rec = BotaoRec(this, wm, app.preferencias, fontes)
         rec.aoTocar = { alternarGravacao() }
+        imagem = LeitorImagem(this, ContextCompat.getMainExecutor(this))
         Estado.leitorAtivo.value = true
         instancia = this
 
@@ -101,14 +106,33 @@ class LeitorService : AccessibilityService() {
             .getOrDefault(emptyList())
             .ifEmpty { listOfNotNull(rootInActiveWindow?.takeIf { it.packageName?.toString() == pacote }) }
         raizes.forEach { coletar(it, textos, 0) }
+
+        if (processar(nome, textos, "texto (${raizes.size} janela(s))")) return
+
+        // Plano B: o Uber esconde o texto do card do leitor normal. Lê pela imagem da tela.
+        val agora = System.currentTimeMillis()
+        val tela = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (app.preferencias.ajustes.value.leituraImagem && imagem.disponivel && !imagem.ocupado &&
+            tela.isInteractive && agora - ultimaImagemEm >= INTERVALO_IMAGEM_MS
+        ) {
+            ultimaImagemEm = agora
+            imagem.ler { linhas ->
+                val n = nomeDoApp(pacote) ?: return@ler
+                processar(n, linhas, "imagem")
+            }
+        }
+    }
+
+    /** Tenta achar uma chamada nos textos. true = achou (e mostrou o semáforo, se for nova). */
+    private fun processar(nome: String, textos: List<String>, origem: String): Boolean {
+        val agora = System.currentTimeMillis()
         if (textos.isEmpty()) {
-            if (balao.visivel && System.currentTimeMillis() - ultimoCardEm > SUMIU_MS) balao.esconder()
-            return
+            if (balao.visivel && agora - ultimoCardEm > SUMIU_MS) balao.esconder()
+            return false
         }
 
         val criterios = app.preferencias.criterios.value
         val chamada = runCatching { LeitorCard.ler(nome, textos, criterios.velocidadeMediaKmH) }.getOrNull()
-        val agora = System.currentTimeMillis()
 
         if (app.preferencias.ajustes.value.modoCaptura &&
             textos.any { it.contains("R$") || it.contains("km", ignoreCase = true) }
@@ -117,8 +141,8 @@ class LeitorService : AccessibilityService() {
             if (hash != ultimaCapturaHash) {
                 ultimaCapturaHash = hash
                 app.captura.registrar(
-                    nome, textos,
-                    (chamada?.toString() ?: "não reconhecido como chamada") + " · janelas lidas: ${raizes.size}"
+                    "$nome · lido por $origem", textos,
+                    chamada?.toString() ?: "não reconhecido como chamada"
                 )
             }
         }
@@ -126,12 +150,12 @@ class LeitorService : AccessibilityService() {
         if (chamada == null) {
             // O card sumiu (aceitou, recusou ou expirou): fecha o balão depois de um tempinho.
             if (balao.visivel && agora - ultimoCardEm > SUMIU_MS) balao.esconder()
-            return
+            return false
         }
 
         ultimoCardEm = agora
         val assinatura = chamada.assinatura()
-        if (assinatura == ultimaAssinatura && agora - ultimaAssinaturaEm < REPETICAO_MS) return
+        if (assinatura == ultimaAssinatura && agora - ultimaAssinaturaEm < REPETICAO_MS) return true
         ultimaAssinatura = assinatura
         ultimaAssinaturaEm = agora
 
@@ -141,6 +165,7 @@ class LeitorService : AccessibilityService() {
 
         principal.removeCallbacks(fecharPorTempo)
         principal.postDelayed(fecharPorTempo, app.preferencias.ajustes.value.tempoBalao.coerceIn(3, 120) * 1000L)
+        return true
     }
 
     /** Junta texto e descrição de cada elemento, na ordem da tela. */
@@ -189,6 +214,7 @@ class LeitorService : AccessibilityService() {
         escopo.cancel()
         if (::balao.isInitialized) balao.esconder()
         if (::rec.isInitialized) rec.esconder()
+        if (::imagem.isInitialized) imagem.fechar()
     }
 
     companion object {
@@ -205,7 +231,9 @@ class LeitorService : AccessibilityService() {
         const val PACOTE_UBER = "com.ubercab.driver"
         const val PACOTE_99 = "com.app99.driver"
         private const val ATRASO_LEITURA_MS = 250L
-        private const val SUMIU_MS = 2500L
+        private const val SUMIU_MS = 3500L
+        /** Leitura pela imagem: no máximo uma a cada 1,5 s (poupa bateria). */
+        private const val INTERVALO_IMAGEM_MS = 1500L
         private const val REPETICAO_MS = 60_000L
     }
 }
