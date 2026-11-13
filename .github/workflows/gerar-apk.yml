@@ -52,7 +52,12 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             ./gradlew assembleDebug --no-daemon
           else
-            ./gradlew assembleRelease --no-daemon
+            set -o pipefail
+            if ! ./gradlew assembleRelease --no-daemon 2>&1 | tee build.log; then
+              # Mostra o motivo da falha nos avisos da execução (aba Summary).
+              grep -E "^e: |What went wrong|Caused by|error:" -A3 build.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+              exit 1
+            fi
             NOME="Compensa-${GITHUB_REF_NAME//\//-}.apk"
             cp app/build/outputs/apk/release/app-release.apk "$NOME"
             echo "APK=$NOME" >> "$GITHUB_ENV"

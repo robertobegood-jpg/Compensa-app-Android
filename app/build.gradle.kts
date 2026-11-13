@@ -29,13 +29,22 @@ android {
             Properties().apply { arq.inputStream().use { load(it) } }.getProperty("senha")
         }
     val temAssinatura = chave.exists() && senhaChave != null
+    // O apelido (alias) da chave é lido do próprio arquivo, então serve a mesma chave dos outros apps.
+    val apelidoChave: String = System.getenv("KEYSTORE_ALIAS")?.takeIf { it.isNotBlank() }
+        ?: if (temAssinatura) {
+            runCatching {
+                val ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
+                chave.inputStream().use { ks.load(it, senhaChave!!.toCharArray()) }
+                ks.aliases().toList().first()
+            }.getOrDefault("androiddebugkey")
+        } else "androiddebugkey"
 
     signingConfigs {
         if (temAssinatura) {
             create("oficial") {
                 storeFile = chave
                 storePassword = senhaChave
-                keyAlias = "androiddebugkey"
+                keyAlias = apelidoChave
                 keyPassword = senhaChave
             }
         }
