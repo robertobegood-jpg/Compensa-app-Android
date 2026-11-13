@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Compensa?</string>
+    <string name="leitor_nome">Compensa: leitor de chamadas</string>
+    <string name="leitor_descricao">Lê o texto do card de chamada do Uber Driver e do 99 Motorista (valor, distâncias e tempos) para mostrar se a corrida compensa. Não lê outros apps, não toca em nada e não envia dados para fora do celular.</string>
+</resources>

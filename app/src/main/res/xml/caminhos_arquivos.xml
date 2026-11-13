@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pastas que o app pode entregar a outros apps (compartilhar). -->
+<paths>
+    <cache-path name="exportacoes" path="exportacoes/" />
+    <external-files-path name="videos" path="Movies/" />
+</paths>

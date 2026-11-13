@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Semáforo de cantos retos (sistema Oficina) centralizado na área segura -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:fillColor="#00000000"
+        android:pathData="M42,29h24v50h-24z" />
+    <path android:fillColor="#E8573F" android:pathData="M54,40m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path android:fillColor="#F2A516" android:pathData="M54,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path android:fillColor="#1F9D55" android:pathData="M54,68m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+</vector>
