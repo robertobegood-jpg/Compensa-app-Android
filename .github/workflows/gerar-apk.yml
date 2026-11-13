@@ -42,7 +42,11 @@ jobs:
       - name: Testes da leitura e do cálculo
         run: |
           chmod +x gradlew
-          ./gradlew testDebugUnitTest --no-daemon
+          set -o pipefail
+          if ! ./gradlew testDebugUnitTest --no-daemon 2>&1 | tee testes.log; then
+            grep -E "^e: |What went wrong|Caused by|error:|FAILED|Exception" -A3 testes.log | head -40 | while IFS= read -r l; do echo "::error::$l"; done
+            exit 1
+          fi
 
       - name: Compilar
         env:

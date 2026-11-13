@@ -1,3 +1,4 @@
+import java.security.KeyStore
 import java.util.Properties
 
 plugins {
@@ -33,7 +34,7 @@ android {
     val apelidoChave: String = System.getenv("KEYSTORE_ALIAS")?.takeIf { it.isNotBlank() }
         ?: if (temAssinatura) {
             runCatching {
-                val ks = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
+                val ks = KeyStore.getInstance(KeyStore.getDefaultType())
                 chave.inputStream().use { ks.load(it, senhaChave!!.toCharArray()) }
                 ks.aliases().toList().first()
             }.getOrDefault("androiddebugkey")
