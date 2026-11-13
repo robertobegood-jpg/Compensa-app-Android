@@ -83,6 +83,31 @@ public class LeitorCardTest {
         assertEquals(14, c.minViagem, 0.001);
     }
 
+    /** Card real da 99 (Entrega Carro, nov/2026): sem botão "Aceitar", com R$/km e preço dinâmico. */
+    @Test
+    public void noventaENoveCardReal() {
+        Chamada c = LeitorCard.ler("99", Arrays.asList("Entrega Carro", "R$38,60", "R$3,86/km", "Preço x2",
+                "4,90", "Cartão verif.", "8 min (1,4 km)", "Rua Araguaia Vieira Ribeiro, 175,", "Jardim Satelite",
+                "24 min (8,6 km)", "Rua Dr. Abelardo Vergueiro César,", "515 , Vila Alexandria"), 25);
+        assertNotNull(c);
+        assertEquals(38.60, c.valor, 0.001);
+        assertEquals(1.4, c.kmBusca, 0.001);
+        assertEquals(8, c.minBusca, 0.001);
+        assertEquals(8.6, c.kmViagem, 0.001);
+        assertEquals(24, c.minViagem, 0.001);
+    }
+
+    /** O mesmo card lido pela imagem, com o "x2" e o "/km" colados de jeitos diferentes. */
+    @Test
+    public void noventaENoveLidoPorImagem() {
+        Chamada c = LeitorCard.ler("99", Arrays.asList("Entrega Carro", "RS38,60", "R$3,86/ km", "Preço x2",
+                "4,90 • Cartão verif.", "8 min (1,4 km)", "Rua Araguaia Vieira Ribeiro, 175,",
+                "24 min (8,6 km)", "Rua Dr. Abelardo Vergueiro César,"), 25);
+        assertNotNull(c);
+        assertEquals(38.60, c.valor, 0.001);
+        assertEquals(8.6, c.kmViagem, 0.001);
+    }
+
     @Test
     public void uberComPontoDecimalEEspacoEspecial() {
         Chamada c = ler("Uber Comfort", "R$ 25.90", "5 min (1.9 km) away", "Trip: 31 min (14.2 km)", "Accept");

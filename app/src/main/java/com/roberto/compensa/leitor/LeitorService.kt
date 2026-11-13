@@ -51,6 +51,28 @@ class LeitorService : AccessibilityService() {
     }
     private val fecharPorTempo = Runnable { balao.esconder() }
 
+    /**
+     * Vigia: a cada 1,5 s confere se o Uber/99 está na tela e lê, mesmo sem aviso do app.
+     * Necessário porque alguns cards (ex.: 99) não avisam o leitor quando aparecem.
+     */
+    private val vigia = object : Runnable {
+        override fun run() {
+            if (encerrado) return
+            runCatching { vigiar() }
+            principal.postDelayed(this, INTERVALO_VIGIA_MS)
+        }
+    }
+
+    private fun vigiar() {
+        if (leituraAgendada) return // já tem leitura vindo pelos avisos do app
+        val tela = getSystemService(Context.POWER_SERVICE) as PowerManager
+        if (!tela.isInteractive) return
+        val pacote = windows.firstNotNullOfOrNull { w ->
+            w.root?.packageName?.toString()?.takeIf { nomeDoApp(it) != null }
+        } ?: return
+        lerTela(pacote)
+    }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         app = application as App
@@ -60,6 +82,7 @@ class LeitorService : AccessibilityService() {
         rec = BotaoRec(this, wm, app.preferencias, fontes)
         rec.aoTocar = { alternarGravacao() }
         imagem = LeitorImagem(this, ContextCompat.getMainExecutor(this))
+        principal.postDelayed(vigia, INTERVALO_VIGIA_MS)
         Estado.leitorAtivo.value = true
         instancia = this
 
@@ -232,8 +255,9 @@ class LeitorService : AccessibilityService() {
         const val PACOTE_99 = "com.app99.driver"
         private const val ATRASO_LEITURA_MS = 250L
         private const val SUMIU_MS = 3500L
-        /** Leitura pela imagem: no máximo uma a cada 1,5 s (poupa bateria). */
-        private const val INTERVALO_IMAGEM_MS = 1500L
+        /** Leitura pela imagem: no máximo uma a cada 2 s (poupa bateria; o card fica uns 15 s na tela). */
+        private const val INTERVALO_IMAGEM_MS = 2000L
+        private const val INTERVALO_VIGIA_MS = 1500L
         private const val REPETICAO_MS = 60_000L
     }
 }
