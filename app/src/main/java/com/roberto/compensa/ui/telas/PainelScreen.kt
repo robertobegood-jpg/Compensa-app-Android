@@ -43,7 +43,7 @@ import java.util.Calendar
 /** Abre direto o interruptor do Compensa em Acessibilidade (Android 13+); senão, a lista geral. */
 fun abrirAcessibilidade(contexto: Context) {
     val direto = if (Build.VERSION.SDK_INT >= 33) {
-        Intent(Settings.ACTION_ACCESSIBILITY_DETAILS_SETTINGS)
+        Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS")
             .putExtra(Intent.EXTRA_COMPONENT_NAME, ComponentName(contexto, LeitorService::class.java).flattenToString())
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     } else null
