@@ -21,6 +21,8 @@ enum class Tema(val rotulo: String) { ESCURO("Escuro"), CLARO("Claro"), SISTEMA(
 /** Ajustes gerais do app (fora os critérios). */
 data class Ajustes(
     val lerUber: Boolean = true,
+    /** Leitor ligado em Acessibilidade, mas sem ler (pausa rápida, sem ir às configurações). */
+    val leitorPausado: Boolean = false,
     val ler99: Boolean = true,
     /** Segundos que o balão fica na tela. */
     val tempoBalao: Int = 15,
@@ -63,6 +65,7 @@ class Preferencias(context: Context) {
     fun salvarAjustes(a: Ajustes) {
         prefs.edit()
             .putBoolean("lerUber", a.lerUber).putBoolean("ler99", a.ler99)
+            .putBoolean("leitorPausado", a.leitorPausado)
             .putInt("tempoBalao", a.tempoBalao).putBoolean("modoCaptura", a.modoCaptura)
             .putBoolean("botaoRec", a.botaoRec).putBoolean("cameraFrontal", a.cameraFrontal)
             .putBoolean("gravarAudio", a.gravarAudio).putString("tema", a.tema.name)
@@ -99,6 +102,7 @@ class Preferencias(context: Context) {
         return Ajustes(
             lerUber = prefs.getBoolean("lerUber", p.lerUber),
             ler99 = prefs.getBoolean("ler99", p.ler99),
+            leitorPausado = prefs.getBoolean("leitorPausado", p.leitorPausado),
             tempoBalao = prefs.getInt("tempoBalao", p.tempoBalao),
             modoCaptura = prefs.getBoolean("modoCaptura", p.modoCaptura),
             botaoRec = prefs.getBoolean("botaoRec", p.botaoRec),

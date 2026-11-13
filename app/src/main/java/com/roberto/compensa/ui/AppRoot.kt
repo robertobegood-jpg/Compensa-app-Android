@@ -63,6 +63,7 @@ fun AppRoot(app: App, abaPedida: String?, onAbaConsumida: () -> Unit) {
     var interna by rememberSaveable { mutableStateOf<String?>(null) }
     val leitorAtivo by Estado.leitorAtivo.collectAsStateWithLifecycle()
     val gravando by Estado.gravando.collectAsStateWithLifecycle()
+    val ajustes by app.preferencias.ajustes.collectAsStateWithLifecycle()
 
     LaunchedEffect(abaPedida) {
         if (abaPedida != null) {
@@ -96,7 +97,7 @@ fun AppRoot(app: App, abaPedida: String?, onAbaConsumida: () -> Unit) {
 
     Scaffold(
         containerColor = cores.bg,
-        topBar = { BarraSuperior(leitorAtivo = leitorAtivo, gravando = gravando) },
+        topBar = { BarraSuperior(leitorAtivo = leitorAtivo, gravando = gravando, pausado = ajustes.leitorPausado) },
         bottomBar = { BarraInferior(abas = abas, rotaAtual = aba, onAba = { aba = it }) }
     ) { recuo ->
         Box(

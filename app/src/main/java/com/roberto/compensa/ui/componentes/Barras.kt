@@ -32,7 +32,7 @@ data class AbaNav(val rota: String, val rotulo: String, val icone: ImageVector)
 
 /** Topo das abas principais: situação do leitor à esquerda, marca à direita. */
 @Composable
-fun BarraSuperior(leitorAtivo: Boolean, gravando: Boolean) {
+fun BarraSuperior(leitorAtivo: Boolean, gravando: Boolean, pausado: Boolean = false) {
     val c = Oficina.cores
     Column(
         Modifier
@@ -49,9 +49,12 @@ fun BarraSuperior(leitorAtivo: Boolean, gravando: Boolean) {
         ) {
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    PontoStatus(if (leitorAtivo) c.verde else c.faint, tamanho = 6.dp)
+                    PontoStatus(
+                        when { !leitorAtivo -> c.faint; pausado -> c.ambar; else -> c.verde },
+                        tamanho = 6.dp
+                    )
                     Spacer(Modifier.width(6.dp))
-                    Hud(if (leitorAtivo) "Leitor ligado" else "Leitor desligado")
+                    Hud(when { !leitorAtivo -> "Leitor desligado"; pausado -> "Leitor pausado"; else -> "Leitor ligado" })
                 }
                 if (gravando) {
                     Row(verticalAlignment = Alignment.CenterVertically) {

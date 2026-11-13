@@ -33,7 +33,7 @@ public final class LeitorCard {
             Pattern.CASE_INSENSITIVE);
 
     private static final Pattern PALAVRA_CHAMADA = Pattern.compile(
-            "\\b(aceitar|aceite|toque para aceitar|nova (?:corrida|viagem|solicitacao)|accept|recusar)\\b",
+            "\\b(aceitar|aceite|toque para aceitar|tenho interesse|nova (?:corrida|viagem|solicitacao)|accept|recusar)\\b",
             Pattern.CASE_INSENSITIVE);
 
     /** Tudo em minúsculas, sem acento e com espaços normais (o Uber usa espaços especiais). */
@@ -150,6 +150,16 @@ public final class LeitorCard {
             } else {
                 pares.add(new double[]{d.v, -1});
             }
+        }
+
+        // Card novo do Uber: primeiro vem o total ("23 min • 5.5 km"), depois busca e viagem.
+        // Se o primeiro par for a soma dos dois seguintes, ele é o total e sai da conta.
+        if (pares.size() >= 3 && pares.get(0)[1] >= 0 && pares.get(1)[1] >= 0 && pares.get(2)[1] >= 0) {
+            double somaKm = pares.get(1)[0] + pares.get(2)[0];
+            double somaMin = pares.get(1)[1] + pares.get(2)[1];
+            boolean kmBate = Math.abs(pares.get(0)[0] - somaKm) <= Math.max(0.3, somaKm * 0.1);
+            boolean minBate = Math.abs(pares.get(0)[1] - somaMin) <= Math.max(2, somaMin * 0.15);
+            if (kmBate && minBate) pares.remove(0);
         }
 
         // Sem palavra de chamada, só aceita se tiver o par completo de busca e viagem.

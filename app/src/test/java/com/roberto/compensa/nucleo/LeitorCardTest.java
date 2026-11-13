@@ -32,6 +32,31 @@ public class LeitorCardTest {
         assertFalse(c.tempoEstimado);
     }
 
+    /** Card real do Uber (Envios Carro, nov/2026): total em cima, botão "Tenho interesse". */
+    @Test
+    public void uberCardNovoComTotalEmCima() {
+        Chamada c = ler("Envios Carro", "R$ 7,09", "23 min • 5.5 km", "4,96 (709)", "Verificado",
+                "11 min (3.2 km)", "R. Dr. Paulo de Barros Whitaker, Cidade Dutra, São Paulo",
+                "12 minutos (2.3 km)", "R. Joaquim Rodrigues de Moraes, 250, Vila Rubi, São Paulo",
+                "Tenho interesse");
+        assertNotNull(c);
+        assertEquals(7.09, c.valor, 0.001);
+        assertEquals(3.2, c.kmBusca, 0.001);
+        assertEquals(11, c.minBusca, 0.001);
+        assertEquals(2.3, c.kmViagem, 0.001);
+        assertEquals(12, c.minViagem, 0.001);
+    }
+
+    /** O mesmo card, mas com todo o texto num elemento só (como alguns apps expõem). */
+    @Test
+    public void uberCardNovoTextoJunto() {
+        Chamada c = ler("Envios Carro R$ 7,09 23 min • 5.5 km 4,96 (709) Verificado 11 min (3.2 km) "
+                + "R. Dr. Paulo de Barros Whitaker 12 minutos (2.3 km) R. Joaquim Rodrigues de Moraes, 250 Tenho interesse");
+        assertNotNull(c);
+        assertEquals(3.2, c.kmBusca, 0.001);
+        assertEquals(2.3, c.kmViagem, 0.001);
+    }
+
     @Test
     public void uberComPontoDecimalEEspacoEspecial() {
         Chamada c = ler("Uber Comfort", "R$ 25.90", "5 min (1.9 km) away", "Trip: 31 min (14.2 km)", "Accept");

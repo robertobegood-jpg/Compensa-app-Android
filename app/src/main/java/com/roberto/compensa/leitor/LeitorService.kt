@@ -35,12 +35,16 @@ class LeitorService : AccessibilityService() {
     private val escopo = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var pacotePendente: String? = null
+    private var leituraAgendada = false
     private var ultimaAssinatura: String? = null
     private var ultimaAssinaturaEm = 0L
     private var ultimoCardEm = 0L
     private var ultimaCapturaHash = 0
 
-    private val lerAgora = Runnable { pacotePendente?.let { lerTela(it) } }
+    private val lerAgora = Runnable {
+        leituraAgendada = false
+        pacotePendente?.let { lerTela(it) }
+    }
     private val fecharPorTempo = Runnable { balao.esconder() }
 
     override fun onServiceConnected() {
@@ -55,6 +59,9 @@ class LeitorService : AccessibilityService() {
         instancia = this
 
         escopo.launch {
+            app.preferencias.ajustes.collect { if (it.leitorPausado) balao.esconder() }
+        }
+        escopo.launch {
             combine(app.preferencias.ajustes, Estado.gravando, Estado.appNaFrente) { a, g, frente ->
                 Triple(a.botaoRec && !frente, g, frente)
             }.collect { (mostrarRec, gravando, _) ->
@@ -67,15 +74,19 @@ class LeitorService : AccessibilityService() {
         if (!::app.isInitialized || encerrado) return
         val pacote = event?.packageName?.toString() ?: return
         if (nomeDoApp(pacote) == null) return
-        // Espera a tela "assentar" (o card chega em vários eventos seguidos).
+        // Lê no máximo a cada 250 ms. Não dá para esperar a tela "parar": o card do Uber tem
+        // uma barra animada no botão que gera eventos sem parar enquanto ele está na tela.
         pacotePendente = pacote
-        principal.removeCallbacks(lerAgora)
-        principal.postDelayed(lerAgora, ATRASO_LEITURA_MS)
+        if (!leituraAgendada) {
+            leituraAgendada = true
+            principal.postDelayed(lerAgora, ATRASO_LEITURA_MS)
+        }
     }
 
     /** null = app que não lemos (ou desligado nos ajustes). */
     private fun nomeDoApp(pacote: String): String? {
         val a = app.preferencias.ajustes.value
+        if (a.leitorPausado) return null
         return when (pacote) {
             PACOTE_UBER -> if (a.lerUber) "Uber" else null
             PACOTE_99 -> if (a.ler99) "99" else null
@@ -90,17 +101,25 @@ class LeitorService : AccessibilityService() {
             .getOrDefault(emptyList())
             .ifEmpty { listOfNotNull(rootInActiveWindow?.takeIf { it.packageName?.toString() == pacote }) }
         raizes.forEach { coletar(it, textos, 0) }
-        if (textos.isEmpty()) return
+        if (textos.isEmpty()) {
+            if (balao.visivel && System.currentTimeMillis() - ultimoCardEm > SUMIU_MS) balao.esconder()
+            return
+        }
 
         val criterios = app.preferencias.criterios.value
         val chamada = runCatching { LeitorCard.ler(nome, textos, criterios.velocidadeMediaKmH) }.getOrNull()
         val agora = System.currentTimeMillis()
 
-        if (app.preferencias.ajustes.value.modoCaptura && textos.any { it.contains("R$") }) {
+        if (app.preferencias.ajustes.value.modoCaptura &&
+            textos.any { it.contains("R$") || it.contains("km", ignoreCase = true) }
+        ) {
             val hash = textos.hashCode()
             if (hash != ultimaCapturaHash) {
                 ultimaCapturaHash = hash
-                app.captura.registrar(nome, textos, chamada?.toString() ?: "não reconhecido como chamada")
+                app.captura.registrar(
+                    nome, textos,
+                    (chamada?.toString() ?: "não reconhecido como chamada") + " · janelas lidas: ${raizes.size}"
+                )
             }
         }
 

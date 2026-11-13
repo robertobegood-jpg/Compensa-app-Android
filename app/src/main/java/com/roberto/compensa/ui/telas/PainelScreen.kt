@@ -1,6 +1,9 @@
 package com.roberto.compensa.ui.telas
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -24,6 +27,7 @@ import com.roberto.compensa.leitor.LeitorService
 import com.roberto.compensa.nucleo.Cor
 import com.roberto.compensa.ui.componentes.BotaoPrimario
 import com.roberto.compensa.ui.componentes.BotaoSecundario
+import com.roberto.compensa.ui.componentes.BotaoTexto
 import com.roberto.compensa.ui.componentes.Hud
 import com.roberto.compensa.ui.componentes.Linha
 import com.roberto.compensa.ui.componentes.PontoStatus
@@ -36,6 +40,21 @@ import com.roberto.compensa.ui.reais
 import com.roberto.compensa.ui.theme.Oficina
 import java.util.Calendar
 
+/** Abre direto o interruptor do Compensa em Acessibilidade (Android 13+); senão, a lista geral. */
+fun abrirAcessibilidade(contexto: Context) {
+    val direto = if (Build.VERSION.SDK_INT >= 33) {
+        Intent(Settings.ACTION_ACCESSIBILITY_DETAILS_SETTINGS)
+            .putExtra(Intent.EXTRA_COMPONENT_NAME, ComponentName(contexto, LeitorService::class.java).flattenToString())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    } else null
+    val abriu = direto != null && runCatching { contexto.startActivity(direto) }.isSuccess
+    if (!abriu) {
+        runCatching {
+            contexto.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+}
+
 /** Início do dia de hoje, em milissegundos. */
 fun inicioDeHoje(): Long = Calendar.getInstance().apply {
     set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
@@ -46,6 +65,8 @@ fun PainelScreen(app: App, onIrCriterios: () -> Unit, onIrGravar: () -> Unit, on
     val c = Oficina.cores
     val contexto = LocalContext.current
     val leitorAtivo by Estado.leitorAtivo.collectAsStateWithLifecycle()
+    val ajustes by app.preferencias.ajustes.collectAsStateWithLifecycle()
+    val pausado = ajustes.leitorPausado
     val gravando by Estado.gravando.collectAsStateWithLifecycle()
     val registros by app.historico.registros.collectAsStateWithLifecycle()
     val hoje = remember(registros) {
@@ -62,9 +83,9 @@ fun PainelScreen(app: App, onIrCriterios: () -> Unit, onIrGravar: () -> Unit, on
         if (leitorAtivo) {
             Bloco(Modifier.marcasDeCanto(c.lineStrong)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    PontoStatus(c.verde)
+                    PontoStatus(if (pausado) c.ambar else c.verde)
                     Spacer(Modifier.width(8.dp))
-                    Hud("Ligado", cor = c.verdeInk)
+                    Hud(if (pausado) "Pausado" else "Ligado", cor = if (pausado) c.ambarInk else c.verdeInk)
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(
@@ -73,13 +94,22 @@ fun PainelScreen(app: App, onIrCriterios: () -> Unit, onIrGravar: () -> Unit, on
                     style = Oficina.tipos.body, color = c.ink
                 )
                 Spacer(Modifier.height(16.dp))
-                BotaoSecundario(
-                    "Desligar o leitor",
-                    onClick = { LeitorService.desligar() },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                if (pausado) {
+                    BotaoPrimario(
+                        "Retomar o leitor",
+                        onClick = { app.preferencias.salvarAjustes(ajustes.copy(leitorPausado = false)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    BotaoSecundario(
+                        "Pausar o leitor",
+                        onClick = { app.preferencias.salvarAjustes(ajustes.copy(leitorPausado = true)) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 Spacer(Modifier.height(4.dp))
-                TextoApoio("Para religar, é só tocar em \"Ligar o leitor\" de novo.")
+                TextoApoio("Pausar e retomar é na hora, sem passar pelas configurações. O botão REC continua funcionando.")
+                BotaoTexto("Desativar de vez", onClick = { LeitorService.desligar() }, cor = c.muted)
             }
         } else {
             Bloco(Modifier.marcasDeCanto(c.lineStrong)) {
@@ -103,11 +133,7 @@ fun PainelScreen(app: App, onIrCriterios: () -> Unit, onIrGravar: () -> Unit, on
                 BotaoPrimario(
                     "Ligar o leitor", seta = true,
                     onClick = {
-                        runCatching {
-                            contexto.startActivity(
-                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
-                        }
+                        abrirAcessibilidade(contexto)
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
