@@ -1,7 +1,9 @@
 package com.roberto.compensa.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -80,10 +82,13 @@ fun AppRoot(app: App, abaPedida: String?, onAbaConsumida: () -> Unit) {
 
     val atual = interna
     if (atual != null) {
+        // Fundo do tema (claro ou escuro) também nas telas internas.
         Box(
             Modifier
                 .fillMaxSize()
+                .background(cores.bg)
                 .statusBarsPadding()
+                .navigationBarsPadding()
         ) {
             when (atual) {
                 Rotas.TESTAR -> TestarScreen(app, onVoltar = { interna = null })
